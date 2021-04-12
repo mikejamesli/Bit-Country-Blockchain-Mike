@@ -21,7 +21,7 @@ use sp_runtime::{
 use frame_system::{self as system, ensure_signed};
 use orml_nft::Module as NftModule;
 use pallet_nft::NftClassData;
-
+use pallet_nft::NftAssetData;
 mod auction;
 
 pub use crate::auction::{Auction, AuctionHandler, Change, OnNewBidResult};
@@ -349,7 +349,6 @@ impl<T: Config> Module<T> {
             //Lock fund of new bidder
             //Reserve balance
             <pallet_balances::Module<T>>::reserve(&new_bidder, new_bid_price)?;
-            auction_item.recipient = new_bidder.clone();
             auction_item.amount = new_bid_price.clone();
 
             Ok(())
