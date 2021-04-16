@@ -90,6 +90,13 @@ package = 'pallet-auction'
 path = '../pallets/auction'
 version = '2.0.0-rc6'
 
+[dependencies.staking]
+default-features = false
+package = 'pallet-staking'
+path = '../pallets/staking'
+version = '2.0.0-rc6'
+
+
 [build-dependencies]
 substrate-wasm-builder = '4.0.0'
 
@@ -145,6 +152,7 @@ std = [
     "pallet-contracts/std",
     "pallet-contracts-primitives/std",
     "pallet-contracts-rpc-runtime-api/std",
+    'staking/std',
     "oracle/std"
 ]
 

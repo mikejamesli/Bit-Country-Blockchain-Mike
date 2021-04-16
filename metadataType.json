@@ -13,8 +13,7 @@
   },
   "AuctionId": "u64",
   "AuctionItem": {
-    "asset_id": "TokenId",
-    "class_id": "ClassId",
+    "item_id": "ItemId",
     "recipient": "AccountId",
     "initial_amount": "Balance",
     "amount": "Balance",
@@ -102,5 +101,23 @@
   "XCurrencyId": {
     "chain_id": "ChainId",
     "currency_id": "CurrencyId"
+  },
+  "GroupCollectionId": "u64",
+  "ClassIdOf": "u64",
+  "TokenIdOf": "u32",
+  "ItemId": {
+    "_enum": {
+      "NFT": "AssetId",
+      "Spot": "u64",
+      "Country": "CountryId",
+      "Block": "u64"
+    }
+  },
+  "CollectionType": {
+    "_enum": [
+      "Collectable",
+      "Wearable",
+      "Executable"
+    ]
   }
 }

@@ -539,6 +539,7 @@ dependencies = [
  "pallet-grandpa",
  "pallet-nft",
  "pallet-randomness-collective-flip",
+ "pallet-staking",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-tips",
@@ -4203,6 +4204,32 @@ dependencies = [
  "sp-staking",
  "sp-std",
  "sp-trie",
+]
+
+[[package]]
+name = "pallet-staking"
+version = "2.0.0-rc6"
+dependencies = [
+ "bit-country-primitives",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-rpc-runtime-api",
+ "orml-nft",
+ "pallet-balances",
+ "pallet-country",
+ "pallet-timestamp",
+ "pallet-tokenization",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-version",
 ]
 
 [[package]]
