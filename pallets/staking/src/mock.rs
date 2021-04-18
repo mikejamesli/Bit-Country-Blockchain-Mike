@@ -2,7 +2,7 @@
 
 use super::*;
 
-use crate as auction;
+use crate as staking;
 use frame_support::{
     construct_runtime, impl_outer_event, impl_outer_origin, impl_outer_dispatch, parameter_types, traits::EnsureOrigin, weights::Weight,
 };
@@ -10,15 +10,13 @@ use sp_core::H256;
 use sp_runtime::testing::Header;
 use sp_runtime::traits::IdentityLookup;
 use primitives::{CurrencyId, Amount, BlockNumber};
-use orml_nft;
-use pallet_nft as NFTModule;
 
 parameter_types! {
     pub const BlockHashCount: u32 = 256;
 }
 
 pub type AccountId = u128;
-pub type AuctionId = u64;
+pub type PoolId = u64;
 pub type Balance = u64;
 
 pub const ALICE: AccountId = 1;
@@ -64,45 +62,10 @@ impl pallet_balances::Config for Runtime {
     type WeightInfo = ();
 }
 
-pub struct Handler;
-
-impl AuctionHandler<AccountId, Balance, BlockNumber, AuctionId> for Handler {
-    fn on_new_bid(now: BlockNumber, id: AuctionId, new_bid: (AccountId, Balance), last_bid: Option<(AccountId, Balance)>) -> OnNewBidResult<BlockNumber> {
-        //Test with Alice bid
-        if new_bid.0 == ALICE {
-            OnNewBidResult {
-                accept_bid: true,
-                auction_end_change: Change::NoChange,
-            }
-        } else {
-            OnNewBidResult {
-                accept_bid: false,
-                auction_end_change: Change::NoChange,
-            }
-        }
-    }
-
-    fn on_auction_ended(_id: AuctionId, _winner: Option<(AccountId, Balance)>) {}
-}
-
-
-parameter_types! {
-    pub const AuctionTimeToClose: u64 = 100; //Test auction end within 100 blocks
-}
-
 impl Config for Runtime {
     type Event = Event;
-    type AuctionTimeToClose = AuctionTimeToClose;
-    type AuctionId = AuctionId;
-    type Handler = Handler;
+    type PoolId = PoolId;
     type Currency = Balances;
-}
-
-impl orml_nft::Config for Runtime {
-    type ClassId = u32;
-    type TokenId = u64;
-    type ClassData = NFTModule::NftClassData<Balance>;
-    type TokenData = NFTModule::NftAssetData<Balance>;
 }
 
 use frame_system::Call as SystemCall;
@@ -118,9 +81,8 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Module, Call, Config, Storage, Event<T>},
-        OrmlNft: orml_nft::{Module, Storage, Config<T>},
         Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
-        NftAuctionModule: auction::{Module, Call, Storage, Event<T>},
+        StakingModule: staking::{Module, Call, Storage, Event<T>},
 	}
 );
 

@@ -119,5 +119,6 @@
       "Wearable",
       "Executable"
     ]
-  }
+  },
+  "PoolId": "u64"
 }

@@ -535,6 +535,12 @@ impl tokenization::Config for Runtime {
     type CountryCurrency = Currencies;
 }
 
+impl staking::Config for Runtime {
+    type Event = Event;
+    type PoolId = u64;
+    type Currency = Balances;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -567,6 +573,7 @@ construct_runtime!(
         NftModule: nft::{Module, Call ,Storage, Event<T>},
         Auction: auction::{Module, Call ,Storage, Event<T>},
         Currencies: orml_currencies::{ Module, Storage, Call, Event<T>},
+        Staking: staking::{Module, Call ,Storage, Event<T>},
         Tokens: orml_tokens::{ Module, Storage, Call, Event<T>},
         TokenizationModule: tokenization:: {Module, Call, Storage, Event<T>},
     }

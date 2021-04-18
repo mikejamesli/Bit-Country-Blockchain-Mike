@@ -7,13 +7,17 @@
 #![allow(clippy::string_lit_as_bytes)]
 
 use frame_support::{
-    decl_error, decl_event, decl_module, decl_storage, ensure,
-    traits::{Currency,Get},Parameter,
+    decl_error, decl_event, decl_module, decl_storage,
+    ensure,
+    traits::{Currency,ExistenceRequirement, Get},Parameter, 
+    weights::Weight,
+    StorageMap, StorageValue,
 };
 
 use codec::{Decode, Encode};
 use sp_runtime::{
-    traits::{AtLeast32BitUnsigned, Bounded, MaybeSerializeDeserialize, Member}, RuntimeDebug,
+    traits::{AtLeast32BitUnsigned, Bounded, MaybeSerializeDeserialize, Member, One}, RuntimeDebug,
+    DispatchError, DispatchResult,
 };
 use sp_std::vec::Vec;
 
@@ -27,7 +31,7 @@ mod mock;
 
 use primitives::{CountryId};
 
-pub struct AuctionLogicHandler;
+pub struct PoolLogicHandler;
 
 #[cfg_attr(feature = "std", derive(PartialEq, Eq))]
 #[derive(Encode, Decode, Clone, RuntimeDebug)]
@@ -43,8 +47,6 @@ frame_system::Config
 + pallet_balances::Config
 {
     type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
-
-    type AuctionTimeToClose: Get<Self::BlockNumber>;
 
     /// The Pool ID type
     type PoolId: Parameter
@@ -74,7 +76,7 @@ decl_storage! {
 
         pub StakingRewards get(fn staking_rewards): double_map hasher(twox_64_concat) T::PoolId, hasher(twox_64_concat) T::AccountId => T::Balance;
 
-        pub StakingPoolCount get(fn staking_pool_count): u32;
+        pub StakingPoolCount get(fn staking_pool_count): T::PoolId;
 
         pub PoolsTotalStaked get(fn pools_total_staked): u64;
     }
@@ -82,12 +84,10 @@ decl_storage! {
 decl_event!(
     pub enum Event<T> where
         <T as frame_system::Config>::AccountId,
-        <T as frame_system::Config>::BlockNumber,
-        <T as pallet_balances::Config>::Balance,
+        <T as pallet_balances::Config>::Balance, 
         <T as Config>::PoolId,
     {
-        /// A bid is placed. [auction_id, bidder, bidding_amount]
-        PoolCreated(PoolId, AccountId, BlockNumber),
+        PoolCreated(AccountId, PoolId),
         Stake(PoolId, AccountId, Balance),
         Claim(PoolId, AccountId, Balance),
         Unstake(PoolId),
@@ -99,12 +99,13 @@ decl_module! {
         type Error = Error<T>;
         fn deposit_event() = default;
 
-        /// The extended time for the auction to end after each successful bid
-        const AuctionTimeToClose: T::BlockNumber = T::AuctionTimeToClose::get();
-
         #[weight = 10_000]
         fn create_staking_pool(origin,  country_id: CountryId, start_block: T::BlockNumber, end_block: T::BlockNumber) {
             let from = ensure_signed(origin)?;
+            
+            let pool_id = Self::new_auction(from.clone())?;
+
+            Self::deposit_event(RawEvent::PoolCreated(from, pool_id));
         }
 
         #[weight = 10_000]
@@ -130,11 +131,32 @@ decl_module! {
 decl_error! {
     /// Error for auction module.
     pub enum Error for Module<T: Config> {
-      
+        NoAvailablePoolId,
     }
 }
 
 impl<T: Config> Module<T> {
-   
+    fn new_auction(
+        _recipient: T::AccountId,
+    ) -> Result<T::PoolId, DispatchError> {
+        // let auction: Pool<T::AccountId, T::Balance, T::BlockNumber> = PoolInfo {
+        //     bid: None,
+        //     start,
+        //     end,
+        // };
+
+        let pool_id: T::PoolId =
+        <StakingPoolCount<T>>::try_mutate(|n| -> Result<T::PoolId, DispatchError> {
+            let id = *n;
+            ensure!(
+                id != T::PoolId::max_value(),
+                Error::<T>::NoAvailablePoolId
+            );
+            *n += One::one();
+            Ok(id)
+        })?;
+
+        Ok(pool_id)
+    }
 }
 
