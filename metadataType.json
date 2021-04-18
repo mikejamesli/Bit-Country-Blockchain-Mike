@@ -25,6 +25,12 @@
     "start": "BlockNumber",
     "end": "Option<BlockNumber>"
   },
+  "Pool": {
+    "name": "Vec<u8>",
+    "start": "BlockNumber",
+    "end": "BlockNumber",
+    "reward_percentage": "u32"
+  },
   "RentId": "u64",
   "RentalInfo": {
     "owner": "AccountId",

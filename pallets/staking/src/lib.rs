@@ -1,7 +1,3 @@
-// This pallet use The Open Runtime Module Library (ORML) which is a community maintained collection of Substrate runtime modules.
-// Thanks to all contributors of orml.
-// Ref: https://github.com/open-web3-stack/open-runtime-module-library
-
 #![cfg_attr(not(feature = "std"), no_std)]
 // Disable the following two lints since they originate from an external macro (namely decl_storage)
 #![allow(clippy::string_lit_as_bytes)]
@@ -37,8 +33,8 @@ pub struct PoolLogicHandler;
 #[derive(Encode, Decode, Clone, RuntimeDebug)]
 pub struct Pool<BlockNumber> {
     name: Vec<u8>,
-    start_block: BlockNumber,
-    end_block: BlockNumber,
+    start: BlockNumber,
+    end: BlockNumber,
     reward_percentage: u32,
 }
 
@@ -100,10 +96,10 @@ decl_module! {
         fn deposit_event() = default;
 
         #[weight = 10_000]
-        fn create_staking_pool(origin,  country_id: CountryId, start_block: T::BlockNumber, end_block: T::BlockNumber) {
+        fn create_staking_pool(origin,  country_id: CountryId, name: Vec<u8>, start_block: T::BlockNumber, end_block: T::BlockNumber) {
             let from = ensure_signed(origin)?;
             
-            let pool_id = Self::new_auction(from.clone())?;
+            let pool_id = Self::new_staking_pool(from.clone(), name, start_block, end_block, 10)?;
 
             Self::deposit_event(RawEvent::PoolCreated(from, pool_id));
         }
@@ -136,14 +132,19 @@ decl_error! {
 }
 
 impl<T: Config> Module<T> {
-    fn new_auction(
+    fn new_staking_pool(
         _recipient: T::AccountId,
+        _name: Vec<u8>,
+        _start: T::BlockNumber,
+        _end: T::BlockNumber,
+        _reward_percentage: u32,
     ) -> Result<T::PoolId, DispatchError> {
-        // let auction: Pool<T::AccountId, T::Balance, T::BlockNumber> = PoolInfo {
-        //     bid: None,
-        //     start,
-        //     end,
-        // };
+        let pool: Pool<T::BlockNumber> = Pool {
+           name: _name,
+           start: _start,
+           end: _end,
+           reward_percentage: _reward_percentage,
+        };
 
         let pool_id: T::PoolId =
         <StakingPoolCount<T>>::try_mutate(|n| -> Result<T::PoolId, DispatchError> {
@@ -155,6 +156,8 @@ impl<T: Config> Module<T> {
             *n += One::one();
             Ok(id)
         })?;
+
+        <Pools<T>>::insert(pool_id, pool);
 
         Ok(pool_id)
     }
