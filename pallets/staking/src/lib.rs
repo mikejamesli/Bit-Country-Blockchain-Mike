@@ -96,10 +96,34 @@ decl_module! {
         fn deposit_event() = default;
 
         #[weight = 10_000]
-        fn create_staking_pool(origin,  country_id: CountryId, name: Vec<u8>, start_block: T::BlockNumber, end_block: T::BlockNumber) {
+        fn create_staking_pool(origin,  country_id: CountryId, name: Vec<u8>, start: T::BlockNumber, end: T::BlockNumber) {
             let from = ensure_signed(origin)?;
             
-            let pool_id = Self::new_staking_pool(from.clone(), name, start_block, end_block, 10)?;
+            let pool_id = Self::new_staking_pool(from.clone(), name, start, end, 10)?;
+
+            if CountryStakingPools::<T>::contains_key(&country_id){
+                CountryStakingPools::<T>::try_mutate(
+                    &country_id, |pools| -> DispatchResult {
+                        pools.push(pool_id);
+                        Ok(())
+                })?;
+            } else {
+                let mut new_pool = Vec::<T::PoolId>::new();
+                new_pool.push(pool_id);
+                CountryStakingPools::<T>::insert(country_id, new_pool)
+            }
+
+            if PoolsEnded::<T>::contains_key(&end){
+                PoolsEnded::<T>::try_mutate(
+                    &end, |pools| -> DispatchResult {
+                        pools.push(pool_id);
+                        Ok(())
+                })?;
+            } else {
+                let mut new_pool = Vec::<T::PoolId>::new();
+                new_pool.push(pool_id);
+                PoolsEnded::<T>::insert(end, new_pool)
+            }
 
             Self::deposit_event(RawEvent::PoolCreated(from, pool_id));
         }
